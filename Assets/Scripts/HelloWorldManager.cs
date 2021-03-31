@@ -6,6 +6,7 @@ using MLAPI;
 using UnityEngine.UI;
 using System;
 using TMPro;
+using MLAPI.Transports.UNET;
 
 public class HelloWorldManager : MonoBehaviour {
     public Button host;
@@ -17,6 +18,9 @@ public class HelloWorldManager : MonoBehaviour {
     public GameObject serverCanvas;
     string[] modes = {"Host", "Client", "Server"};
     private NetworkManager manager;
+    public TMP_InputField ip_field;
+    public TMP_InputField port_field;
+    private UNetTransport transportLayer;
 
     private void Start(){
 
@@ -24,10 +28,18 @@ public class HelloWorldManager : MonoBehaviour {
         client.onClick.AddListener(() => StartService(1));
         server.onClick.AddListener(() => StartService(2));
 
+        move.onClick.AddListener(SubmitNewPosition);
+
         manager = NetworkManager.Singleton;
+        transportLayer = manager.GetComponent<UNetTransport>();
+        print($"ip: {transportLayer.ConnectAddress}");
+        print($"ip: {transportLayer.ConnectPort}");
     }
 
     private void StartService(int i){
+        transportLayer.ConnectAddress = ip_field.text;
+        transportLayer.ConnectPort = int.Parse(port_field.text);    
+
         var services = new Action[]{
             () => manager.StartHost(),
             () => manager.StartClient(),
@@ -40,6 +52,7 @@ public class HelloWorldManager : MonoBehaviour {
         var transp = manager.NetworkConfig.NetworkTransport.GetType().Name;
         status_txt.text = $"Transport: {transp}\nMode: {mode}";
         setupCanvas.gameObject.SetActive(false);
+        serverCanvas.SetActive(true);
     }
 
     private void SubmitNewPosition(){
