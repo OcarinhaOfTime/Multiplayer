@@ -7,8 +7,10 @@ using UnityEngine.UI;
 using System;
 using TMPro;
 using MLAPI.Transports.UNET;
+using MLAPI.Spawning;
 
 public class HelloWorldManager : MonoBehaviour {
+    //192.168.8.2
     public Button host;
     public Button client;
     public Button server;
@@ -31,19 +33,20 @@ public class HelloWorldManager : MonoBehaviour {
         move.onClick.AddListener(SubmitNewPosition);
 
         manager = NetworkManager.Singleton;
+        manager.NetworkConfig.ConnectionApproval = true;
         transportLayer = manager.GetComponent<UNetTransport>();
         print($"ip: {transportLayer.ConnectAddress}");
-        print($"ip: {transportLayer.ConnectPort}");
+        print($"port: {transportLayer.ConnectPort}");
     }
 
     private void StartService(int i){
-        transportLayer.ConnectAddress = ip_field.text;
-        transportLayer.ConnectPort = int.Parse(port_field.text);    
+        //transportLayer.ConnectAddress = ip_field.text;
+        //transportLayer.ConnectPort = int.Parse(port_field.text);    
 
         var services = new Action[]{
-            () => manager.StartHost(),
-            () => manager.StartClient(),
-            () => manager.StartServer()
+            StartHost,
+            StartClient,
+            () => print("this isn't working yet.")
             };
 
         services[i]();
@@ -53,6 +56,33 @@ public class HelloWorldManager : MonoBehaviour {
         status_txt.text = $"Transport: {transp}\nMode: {mode}";
         setupCanvas.gameObject.SetActive(false);
         serverCanvas.SetActive(true);
+    }
+
+    private void StartHost(){
+        print("starting host");
+        print($"ip: {transportLayer.ConnectAddress}");
+        print($"port: {transportLayer.ConnectPort}");        
+        manager.ConnectionApprovalCallback += ApprovalCheck;
+        manager.StartHost();
+    }
+
+    private void StartClient(){
+        CustomLogger.Log("Requesting host...");
+        var payload = "sup fool;pw 1234";
+        manager.NetworkConfig.ConnectionData = System.Text.Encoding.UTF8.GetBytes(payload);
+        manager.StartClient();
+    }
+
+    private void ApprovalCheck(byte[] connectionData, ulong clientId, MLAPI.NetworkManager.ConnectionApprovedDelegate callback){
+        print("approving...");
+        // bool approve = true;
+        // bool createPlayerObject = false;
+
+        var payload = System.Text.Encoding.UTF8.GetString(connectionData);
+        print($"connected {payload} \nClient: {clientId}");
+
+        ulong? prefabHash = NetworkSpawnManager.GetPrefabHashFromGenerator("MyPrefab");
+        //callback(createPlayerObject, prefabHash, approve, Vector3.zero, Quaternion.identity);
     }
 
     private void SubmitNewPosition(){
