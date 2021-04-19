@@ -10,8 +10,15 @@ public class EntryList : MonoBehaviour {
 
     private void Start(){
         Add("A Player");
-        Add("Another Player");
-        Add("Another Player2");
+        //Add("Another Player");
+        //Add("Another Player2");
+    }
+
+    public void SetEntries(string[] entrieList){
+        Clear();
+        foreach(var entry in entrieList){
+            Add(entry);
+        }
     }
 
     public void Add(string label){
@@ -21,5 +28,13 @@ public class EntryList : MonoBehaviour {
         entry.transform.SetParent(content, false);
         entries.Add(entry);
         entry.SetActive(true);
+    }
+
+    private void Clear(){
+        foreach(var entry in entries){
+            Destroy(entry);
+        }
+
+        entries.Clear();
     }
 }
