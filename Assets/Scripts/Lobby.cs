@@ -25,18 +25,22 @@ public class Lobby : MonoBehaviour {
 
     private void Start() {
         manager = NetworkManager.Singleton;
-        manager.NetworkConfig.ConnectionApproval = true;
         transportLayer = manager.GetComponent<UNetTransport>();
+
         print($"ip: {transportLayer.ConnectAddress}");
         print($"port: {transportLayer.ConnectPort}");
 
         manager.OnClientConnectedCallback += OnClientConnected;
+
+        transportLayer.ConnectAddress = "192.168.8.2";
+        transportLayer.ConnectPort = 7777;
     }
 
     public void Host() {
         print("starting host");
         print($"ip: {transportLayer.ConnectAddress}");
         print($"port: {transportLayer.ConnectPort}");
+
         manager.ConnectionApprovalCallback += HostApprovalCheck;
         manager.StartHost();
 
@@ -44,9 +48,13 @@ public class Lobby : MonoBehaviour {
     }
 
     public void Join(string nick, string ip) {
-        print("registering client handlers");
-        print("registering client handlers registered");
-        transportLayer.ConnectAddress = ip;
+        print("starting host");
+        print($"ip: {transportLayer.ConnectAddress}");
+        print($"port: {transportLayer.ConnectPort}");
+
+        print($"relay ip: {transportLayer.MLAPIRelayAddress}");
+        print($"relay port: {transportLayer.MLAPIRelayPort}");
+        
         manager.NetworkConfig.ConnectionData = System.Text.Encoding.UTF8.GetBytes(nick);
         
 
@@ -64,15 +72,12 @@ public class Lobby : MonoBehaviour {
             print(clientId + " is already in");
             return;
         }
+
         connectedClientsDict.Add(clientId, payload);
-        //onHostConnect.Invoke(payload);
 
-        var approve = true;
-
-        //SendNetMessage($"it's me, server, here's ur name: {payload}");
-        callback(false, 0, approve, Vector3.zero, Quaternion.identity);
-        StartCoroutine(TestMessageRoutine());    
+        callback(false, 0, true, Vector3.zero, Quaternion.identity);
         UpdateClients();    
+        SendConnectionUpdate();
     }
 
     private void UpdateClients(){
@@ -82,25 +87,27 @@ public class Lobby : MonoBehaviour {
         onConnectionChange.Invoke();
     }
 
-    private IEnumerator TestMessageRoutine(){
-        print("queueing message");
-        yield return new WaitForSeconds(3);
+    private void SendConnectionUpdate(){
         var str = "";
         foreach(var client in connectedClients){
             str += $"{client},";
         }
+        str = str.Remove(str.Length - 1);
+
+        print($"updating clients {str}");
         SendNetMessage(str);
     }
 
     private void OnClientConnected(ulong serverId) {
         print("we are OnClientConnected");
         onClientConnect.Invoke($"we are connected on {serverId}");
-        UpdateClients();
     }
 
     private void OnClientMessage(string payload) {
-        print("we are OnClientConnected");
+        print($"we are OnClientMessage {payload}");
         onClientConnect.Invoke($"Custom message {payload}");
+        connectedClients = payload.Split(',');
+        onConnectionChange.Invoke();
     }
 
     private void RegisterClientMessageHandlers() {
@@ -118,7 +125,7 @@ public class Lobby : MonoBehaviour {
         using (var buffer = PooledNetworkBuffer.Get()) {
             using (var writer = PooledNetworkWriter.Get(buffer)) {
                 writer.WriteString(msg);
-                MLAPI.Messaging.CustomMessagingManager.SendNamedMessage("BJ_ConnectResult", null, buffer, NetworkChannel.DefaultMessage);
+                MLAPI.Messaging.CustomMessagingManager.SendNamedMessage("BJ_ConnectResult", null, buffer);
             }
         }
     }

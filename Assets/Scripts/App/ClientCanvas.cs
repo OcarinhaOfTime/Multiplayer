@@ -19,7 +19,7 @@ public class ClientCanvas : MonoBehaviour {
         submit.onClick.AddListener(Submit);
         lobby = Lobby.instance;
         lobby.onClientConnect.AddListener(OnClientConnected);
-        lobby.onConnectionChange.AddListener(OnConnected);
+        lobby.onConnectionChange.AddListener(OnConnectionChange);
     }
 
     private void SetConnectedPanel(bool b){
@@ -34,13 +34,15 @@ public class ClientCanvas : MonoBehaviour {
     }
 
     private void OnClientConnected(string status){
+        print("Client Canvas: OnClientConnected");
         log.text = status;
     }
 
-    private void OnConnected(){
-        // connectionPanel.SetActive(false);
-        // connectedPanel.SetActive(false);
-        // entryList.gameObject.SetActive(true);
-        // entryList.SetEntries(lobby.connectedClients);
+    private void OnConnectionChange(){
+        print("Client Canvas: OnConnectionChange");
+        connectionPanel.SetActive(false);
+        connectedPanel.SetActive(false);
+        entryList.gameObject.SetActive(true);
+        entryList.SetEntries(lobby.connectedClients);
     }
 }

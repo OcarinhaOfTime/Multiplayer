@@ -9,7 +9,7 @@ public class EntryList : MonoBehaviour {
     private List<GameObject> entries = new List<GameObject>();
 
     private void Start(){
-        Add("A Player");
+        //Add("A Player");
         //Add("Another Player");
         //Add("Another Player2");
     }
