@@ -12,7 +12,6 @@ using UnityEngine.UI;
 public class Lobby : MonoBehaviour {
     public static Lobby instance;
     private NetworkManager manager;
-    private UNetTransport transportLayer;
     private Dictionary<ulong, string> connectedClientsDict = new Dictionary<ulong, string>();
     //public UnityEvent<string> onHostConnect;
     public UnityEvent<string> onClientConnect;
@@ -25,21 +24,11 @@ public class Lobby : MonoBehaviour {
 
     private void Start() {
         manager = NetworkManager.Singleton;
-        transportLayer = manager.GetComponent<UNetTransport>();
-
-        print($"ip: {transportLayer.ConnectAddress}");
-        print($"port: {transportLayer.ConnectPort}");
-
         manager.OnClientConnectedCallback += OnClientConnected;
-
-        transportLayer.ConnectAddress = "192.168.8.2";
-        transportLayer.ConnectPort = 7777;
     }
 
     public void Host() {
         print("starting host");
-        print($"ip: {transportLayer.ConnectAddress}");
-        print($"port: {transportLayer.ConnectPort}");
 
         manager.ConnectionApprovalCallback += HostApprovalCheck;
         manager.StartHost();
@@ -48,12 +37,7 @@ public class Lobby : MonoBehaviour {
     }
 
     public void Join(string nick, string ip) {
-        print("starting host");
-        print($"ip: {transportLayer.ConnectAddress}");
-        print($"port: {transportLayer.ConnectPort}");
-
-        print($"relay ip: {transportLayer.MLAPIRelayAddress}");
-        print($"relay port: {transportLayer.MLAPIRelayPort}");
+        print("starting join");
         
         manager.NetworkConfig.ConnectionData = System.Text.Encoding.UTF8.GetBytes(nick);
         
