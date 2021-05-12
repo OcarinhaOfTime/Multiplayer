@@ -39,9 +39,7 @@ public class Lobby : MonoBehaviour {
     public void Join(string nick, string ip) {
         print("starting join");
         
-        manager.NetworkConfig.ConnectionData = System.Text.Encoding.UTF8.GetBytes(nick);
-        
-
+        manager.NetworkConfig.ConnectionData = System.Text.Encoding.UTF8.GetBytes(nick);  
         RegisterClientMessageHandlers();
         
         manager.StartClient();
