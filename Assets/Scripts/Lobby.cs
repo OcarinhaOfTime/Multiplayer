@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using MLAPI;
 using MLAPI.Messaging;
 using MLAPI.Serialization.Pooled;
@@ -10,13 +11,33 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class Lobby : MonoBehaviour {
+    public struct ConnectedClientData{
+        public string nick;
+        public int pic;
+
+        public ConnectedClientData(string payload){
+            var split = payload.Split(',');
+            nick = split[0];
+            pic = int.Parse(split[1]);
+        }
+
+        public static ConnectedClientData[] ParseClients(string payload){
+            var split = payload.Split(';');
+            ConnectedClientData[] clients = new ConnectedClientData[split.Length];
+            for(int i=0; i<split.Length; i++){
+                clients[i] = new ConnectedClientData(split[i]);
+            }
+
+            return clients;
+        }
+    }
     public static Lobby instance;
     private NetworkManager manager;
     private Dictionary<ulong, string> connectedClientsDict = new Dictionary<ulong, string>();
     //public UnityEvent<string> onHostConnect;
     public UnityEvent<string> onClientConnect;
     public UnityEvent onConnectionChange;
-    public string[] connectedClients;
+    public ConnectedClientData[] connectedClients;
 
     private void Awake() {
         instance = this;
@@ -36,10 +57,12 @@ public class Lobby : MonoBehaviour {
         UpdateClients();
     }
 
-    public void Join(string nick, string ip) {
+    public void Join(string nick, int pp_id) {
         print("starting join");
+        var payload = $"{nick},{pp_id}";
         
-        manager.NetworkConfig.ConnectionData = System.Text.Encoding.UTF8.GetBytes(nick);  
+        manager.NetworkConfig.ConnectionData = 
+        System.Text.Encoding.UTF8.GetBytes(payload);  
         RegisterClientMessageHandlers();
         
         manager.StartClient();
@@ -63,16 +86,18 @@ public class Lobby : MonoBehaviour {
     }
 
     private void UpdateClients(){
-        var list = new List<string>(new string[]{"Host"});
-        list.AddRange(connectedClientsDict.Values);
-        connectedClients = list.ToArray();
+        //var list = new List<ConnectedClientData>(new string[]);
+        //list.AddRange(connectedClientsDict.Values);
+        connectedClients = connectedClientsDict.Values.Select(
+            s => new ConnectedClientData(s)).ToArray();
+         
         onConnectionChange.Invoke();
     }
 
     private void SendConnectionUpdate(){
         var str = "";
         foreach(var client in connectedClients){
-            str += $"{client},";
+            str += $"{client.nick},{client.pic};";
         }
         str = str.Remove(str.Length - 1);
 
@@ -88,7 +113,7 @@ public class Lobby : MonoBehaviour {
     private void OnClientMessage(string payload) {
         print($"we are OnClientMessage {payload}");
         onClientConnect.Invoke($"Custom message {payload}");
-        connectedClients = payload.Split(',');
+        connectedClients = ConnectedClientData.ParseClients(payload);
         onConnectionChange.Invoke();
     }
 

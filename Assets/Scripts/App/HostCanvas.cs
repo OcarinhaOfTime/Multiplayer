@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class HostCanvas : MonoBehaviour {
@@ -20,7 +21,10 @@ public class HostCanvas : MonoBehaviour {
     }
 
     public void UpdateUI(){
-        players.SetEntries(lobby.connectedClients);
+        var entries = lobby.connectedClients.Select(v => v.nick).ToArray();
+        var sprites = lobby.connectedClients.Select(
+            v => ProfileFicPicker.instance[v.pic]).ToArray();
+        players.SetEntries(entries, sprites);
     }
     
 }

@@ -2,29 +2,26 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class EntryList : MonoBehaviour {
     public RectTransform content;
     public GameObject prefab;
     private List<GameObject> entries = new List<GameObject>();
 
-    private void Start(){
-        //Add("A Player");
-        //Add("Another Player");
-        //Add("Another Player2");
-    }
-
-    public void SetEntries(string[] entrieList){
+    public void SetEntries(string[] entries, Sprite[] sprites){
         Clear();
-        foreach(var entry in entrieList){
-            Add(entry);
+        for(int i=0; i<entries.Length; i++){
+            Add(entries[i], sprites[i]);
         }
     }
 
-    public void Add(string label){
+    public void Add(string label, Sprite sprite){
         var entry = Instantiate(prefab);
         var txt = entry.GetComponentInChildren<TMP_Text>();
         txt.text = label;
+        var im = entry.transform.GetChild(1).GetChild(1).GetComponent<Image>();
+        im.sprite = sprite;
         entry.transform.SetParent(content, false);
         entries.Add(entry);
         entry.SetActive(true);
