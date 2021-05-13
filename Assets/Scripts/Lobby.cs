@@ -15,6 +15,11 @@ public class Lobby : MonoBehaviour {
         public string nick;
         public int pic;
 
+        public ConnectedClientData(string nick, int pic){
+            this.nick = nick;
+            this.pic = pic;
+        }
+
         public ConnectedClientData(string payload){
             var split = payload.Split(',');
             nick = split[0];
@@ -38,6 +43,7 @@ public class Lobby : MonoBehaviour {
     public UnityEvent<string> onClientConnect;
     public UnityEvent onConnectionChange;
     public ConnectedClientData[] connectedClients;
+    private ConnectedClientData hostData;
 
     private void Awake() {
         instance = this;
@@ -48,10 +54,12 @@ public class Lobby : MonoBehaviour {
         manager.OnClientConnectedCallback += OnClientConnected;
     }
 
-    public void Host() {
+    public void Host(string nick, int pic_id) {
+        hostData = new ConnectedClientData(nick, pic_id);
         print("starting host");
 
         manager.ConnectionApprovalCallback += HostApprovalCheck;
+        manager.OnClientDisconnectCallback += OnClientDisconnect;
         manager.StartHost();
 
         UpdateClients();
@@ -66,6 +74,16 @@ public class Lobby : MonoBehaviour {
         RegisterClientMessageHandlers();
         
         manager.StartClient();
+    }
+
+    public void Disconnect(){        
+        manager.StopClient();
+    }
+
+    private void OnClientDisconnect(ulong clientID){
+        connectedClientsDict.Remove(clientID);
+        UpdateClients();    
+        SendConnectionUpdate();
     }
 
     private void HostApprovalCheck(byte[] connectionData, ulong clientId, MLAPI.NetworkManager.ConnectionApprovedDelegate callback) {
@@ -86,16 +104,17 @@ public class Lobby : MonoBehaviour {
     }
 
     private void UpdateClients(){
-        //var list = new List<ConnectedClientData>(new string[]);
-        //list.AddRange(connectedClientsDict.Values);
-        connectedClients = connectedClientsDict.Values.Select(
-            s => new ConnectedClientData(s)).ToArray();
-         
+        var clients = new List<ConnectedClientData>();
+        clients.Add(hostData);
+
+        clients.AddRange(connectedClientsDict.Values.Select(
+            s => new ConnectedClientData(s)));
+        connectedClients =  clients.ToArray();
         onConnectionChange.Invoke();
     }
 
     private void SendConnectionUpdate(){
-        var str = "";
+        var str = $"";
         foreach(var client in connectedClients){
             str += $"{client.nick},{client.pic};";
         }
@@ -118,7 +137,8 @@ public class Lobby : MonoBehaviour {
     }
 
     private void RegisterClientMessageHandlers() {
-        MLAPI.Messaging.CustomMessagingManager.RegisterNamedMessageHandler("BJ_ConnectResult", (senderClientId, stream) => {
+        MLAPI.Messaging.CustomMessagingManager.RegisterNamedMessageHandler("BJ_ConnectResult", 
+        (senderClientId, stream) => {
             print("receiving message from server");
             using (var reader = PooledNetworkReader.Get(stream)) {
                 var status = reader.ReadString();
@@ -132,7 +152,8 @@ public class Lobby : MonoBehaviour {
         using (var buffer = PooledNetworkBuffer.Get()) {
             using (var writer = PooledNetworkWriter.Get(buffer)) {
                 writer.WriteString(msg);
-                MLAPI.Messaging.CustomMessagingManager.SendNamedMessage("BJ_ConnectResult", null, buffer);
+                MLAPI.Messaging.CustomMessagingManager.SendNamedMessage(
+                    "BJ_ConnectResult", null, buffer);
             }
         }
     }
