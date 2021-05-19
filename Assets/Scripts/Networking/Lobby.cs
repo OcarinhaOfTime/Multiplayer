@@ -10,40 +10,16 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-public class Lobby : MonoBehaviour {
-    public struct ConnectedClientData{
-        public string nick;
-        public int pic;
-
-        public ConnectedClientData(string nick, int pic){
-            this.nick = nick;
-            this.pic = pic;
-        }
-
-        public ConnectedClientData(string payload){
-            var split = payload.Split(',');
-            nick = split[0];
-            pic = int.Parse(split[1]);
-        }
-
-        public static ConnectedClientData[] ParseClients(string payload){
-            var split = payload.Split(';');
-            ConnectedClientData[] clients = new ConnectedClientData[split.Length];
-            for(int i=0; i<split.Length; i++){
-                clients[i] = new ConnectedClientData(split[i]);
-            }
-
-            return clients;
-        }
-    }
+public partial class Lobby : MonoBehaviour {
     public static Lobby instance;
     private NetworkManager manager;
     private Dictionary<ulong, string> connectedClientsDict = new Dictionary<ulong, string>();
-    //public UnityEvent<string> onHostConnect;
     public UnityEvent<string> onClientConnect;
-    public UnityEvent onConnectionChange;
     public ConnectedClientData[] connectedClients;
     private ConnectedClientData hostData;
+
+    public UnityEvent onConnectionChange;
+    public UnityEvent onGameStart;
 
     private void Awake() {
         instance = this;
@@ -51,7 +27,6 @@ public class Lobby : MonoBehaviour {
 
     private void Start() {
         manager = NetworkManager.Singleton;
-        manager.OnClientConnectedCallback += OnClientConnected;
     }
 
     public void Host(string nick, int pic_id) {
@@ -63,18 +38,7 @@ public class Lobby : MonoBehaviour {
         manager.StartHost();        
 
         UpdateClients();
-    }
-
-    public void Join(string nick, int pp_id) {
-        print("starting join");
-        var payload = $"{nick},{pp_id}";
-        
-        manager.NetworkConfig.ConnectionData = 
-        System.Text.Encoding.UTF8.GetBytes(payload);  
-        RegisterClientMessageHandlers();
-        
-        manager.StartClient();
-    }
+    }    
 
     public void Disconnect(){        
         manager.StopClient();
@@ -121,57 +85,35 @@ public class Lobby : MonoBehaviour {
         str = str.Remove(str.Length - 1);
 
         print($"updating clients {str}");
-        SendNetMessage(str);
+        SendNetMessage("BJ_ConnectResult", str);
     }
 
-    private void OnClientConnected(ulong serverId) {
-        print("we are OnClientConnected");
-        onClientConnect.Invoke($"we are connected on {serverId}");
-    }
-
-    private void OnClientMessage(string payload) {
-        print($"we are OnClientMessage {payload}");
-        onClientConnect.Invoke($"Custom message {payload}");
-        connectedClients = ConnectedClientData.ParseClients(payload);
-        onConnectionChange.Invoke();
-    }
-
-    private void RegisterClientMessageHandlers() {
-        MLAPI.Messaging.CustomMessagingManager.RegisterNamedMessageHandler("BJ_ConnectResult", 
-        (senderClientId, stream) => {
-            print("receiving message from server");
-            using (var reader = PooledNetworkReader.Get(stream)) {
-                var status = reader.ReadString();
-                OnClientMessage(status.ToString());
-            }
-        });
-    }
-
-    private void SendNetMessage(string msg) {
+    private void SendNetMessage(string msg_name, string msg) {
         print("Sending net message");
         using (var buffer = PooledNetworkBuffer.Get()) {
             using (var writer = PooledNetworkWriter.Get(buffer)) {
                 writer.WriteString(msg);
                 MLAPI.Messaging.CustomMessagingManager.SendNamedMessage(
-                    "BJ_ConnectResult", null, buffer);
+                    msg_name, null, buffer);
             }
         }
     }
 
-    public void SpawnPlayers(){
-        print("here?");
+    public void SpawnPlayers(){        
         var prefab = manager.NetworkConfig.NetworkPrefabs[0].Prefab;
-        print("maybe here? " + prefab.name);
-        // var net_obj = prefab.GetComponent<NetworkObject>();
-        // print("perhaps here? " + net_obj.name);
-        // foreach(var client_id in connectedClientsDict.Keys){
-        //     net_obj.SpawnAsPlayerObject(client_id);
-        // }        
 
-        print("or even here?");
         var inst = Instantiate(prefab);
         var net_obj =  inst.GetComponent<NetworkObject>();
         net_obj.SpawnAsPlayerObject(manager.ServerClientId);
+        
+        foreach(var client_id in connectedClientsDict.Keys){
+            inst = Instantiate(prefab);
+            net_obj =  inst.GetComponent<NetworkObject>();
+            net_obj.SpawnAsPlayerObject(client_id);
+        }
+
+        SendNetMessage("BJ_StartGame", "14");
+        onGameStart.Invoke();
     }
 
     // private void RegisterServerMessageHandlers()

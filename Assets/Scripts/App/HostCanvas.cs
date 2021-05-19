@@ -48,6 +48,5 @@ public class HostCanvas : MonoBehaviour {
 
     private void StartGame(){
         lobby.SpawnPlayers();
-        TreeUI.instance.gameObject.SetActive(false);
     }
 }
