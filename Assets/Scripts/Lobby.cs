@@ -60,7 +60,7 @@ public class Lobby : MonoBehaviour {
 
         manager.ConnectionApprovalCallback += HostApprovalCheck;
         manager.OnClientDisconnectCallback += OnClientDisconnect;
-        manager.StartHost();
+        manager.StartHost();        
 
         UpdateClients();
     }
@@ -156,6 +156,22 @@ public class Lobby : MonoBehaviour {
                     "BJ_ConnectResult", null, buffer);
             }
         }
+    }
+
+    public void SpawnPlayers(){
+        print("here?");
+        var prefab = manager.NetworkConfig.NetworkPrefabs[0].Prefab;
+        print("maybe here? " + prefab.name);
+        // var net_obj = prefab.GetComponent<NetworkObject>();
+        // print("perhaps here? " + net_obj.name);
+        // foreach(var client_id in connectedClientsDict.Keys){
+        //     net_obj.SpawnAsPlayerObject(client_id);
+        // }        
+
+        print("or even here?");
+        var inst = Instantiate(prefab);
+        var net_obj =  inst.GetComponent<NetworkObject>();
+        net_obj.SpawnAsPlayerObject(manager.ServerClientId);
     }
 
     // private void RegisterServerMessageHandlers()

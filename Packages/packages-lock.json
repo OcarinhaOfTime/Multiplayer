@@ -46,7 +46,7 @@
         "com.unity.modules.animation": "1.0.0",
         "com.unity.nuget.mono-cecil": "1.10.1-preview.1"
       },
-      "hash": "17bd894dff1d327410e02add871123c4bd6f910f"
+      "hash": "3e3aef6aa02c2a25359898319e5bd49d3518b57b"
     },
     "com.unity.nuget.mono-cecil": {
       "version": "1.10.1-preview.1",

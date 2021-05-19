@@ -58,20 +58,8 @@ public class TreeUI : MonoBehaviour {
 
     public int next;
     private void Update(){
-        if(Input.GetKeyDown(KeyCode.Q)){
-            Home();
-        }
-
-        if(Input.GetKeyDown(KeyCode.Z)){
+        if(Input.GetKeyDown(KeyCode.Escape)){
             Back();
-        }
-
-        if(Input.GetKeyDown(KeyCode.Alpha1)){
-            Navigate(0);
-        }
-
-        if(Input.GetKeyDown(KeyCode.Alpha2)){
-            Navigate(1);
         }
     }
 }

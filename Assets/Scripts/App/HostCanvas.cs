@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class HostCanvas : MonoBehaviour {
     public GameObject host_login;
@@ -10,6 +11,7 @@ public class HostCanvas : MonoBehaviour {
     private TreeWidget widget;
     private Lobby lobby;
     public LoginPanel loginPanel;
+    public Button start_btn;
 
     private bool logged{
         set{
@@ -24,6 +26,7 @@ public class HostCanvas : MonoBehaviour {
         lobby = Lobby.instance;
         lobby.onConnectionChange.AddListener(UpdateUI);
         loginPanel.onLogin = OnLogin;
+        start_btn.onClick.AddListener(StartGame);
     }
 
     private void OnLogin(string nick, int pic_id){
@@ -42,4 +45,9 @@ public class HostCanvas : MonoBehaviour {
             v => ProfilePicPicker.instance[v.pic]).ToArray();
         players.SetEntries(entries, sprites);
     }    
+
+    private void StartGame(){
+        lobby.SpawnPlayers();
+        TreeUI.instance.gameObject.SetActive(false);
+    }
 }
