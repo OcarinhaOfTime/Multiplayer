@@ -108,6 +108,8 @@ public partial class Lobby : MonoBehaviour {
         
         foreach(var client_id in connectedClientsDict.Keys){
             inst = Instantiate(prefab);
+            var v = Random.insideUnitCircle * 5;
+            inst.transform.position = new Vector3(v.x, 1, v.y);
             net_obj =  inst.GetComponent<NetworkObject>();
             net_obj.SpawnAsPlayerObject(client_id);
         }
