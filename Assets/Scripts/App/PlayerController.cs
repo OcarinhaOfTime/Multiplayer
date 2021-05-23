@@ -14,8 +14,9 @@ public class PlayerController : NetworkBehaviour {
     private Transform pivot;
     private Transform cam;
     private float vrot;
+
     private void Awake(){
-        //cam = GetComponentInChildren<Camera>().transform;
+        cam = GetComponentInChildren<Camera>().transform;
         pivot = transform.GetChild(0);
         map = new ControlMap();
         map.Enable();
@@ -34,7 +35,7 @@ public class PlayerController : NetworkBehaviour {
     private void Update(){
         if(IsLocalPlayer){
             Move();
-            //Look();
+            Look();
         }
     }
 

@@ -5835,7 +5835,7 @@ MonoBehaviour:
     - lobby
     AllowRuntimeSceneChanges: 0
     NetworkPrefabs:
-    - Prefab: {fileID: 8223205480334513839, guid: 3abcb4bc0daa4f9feafdd4a8dac5fbc8, type: 3}
+    - Prefab: {fileID: 2794796362976290145, guid: 7edf262cb9bebae8d8cf924167762283, type: 3}
       PlayerPrefab: 1
     PlayerPrefabHash:
       id: 0
@@ -10230,7 +10230,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1998477628
 Transform:
   m_ObjectHideFlags: 0
@@ -11194,7 +11194,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!81 &8819644867539769409
 AudioListener:
   m_ObjectHideFlags: 0
